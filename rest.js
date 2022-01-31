@@ -5,12 +5,23 @@ const getData = require('./mongo.js')
 const app = express()
 app.use(express.json())
 
+// error handler
+app.use((err, req, res, next) => {
+    res.status(err.status || 500)
+    res.send({
+        error: {
+            status: (err.status || 500),
+            message: err.message,
+        }
+    })
+})
+
 app.get('/', (req, res) => {
     res.send('hello world')
 });
 
 app.get('/api/all', (req, res) => {
-    getData('select').then(data =>{
+    getData().then(data =>{
         res.send(data);
     })
 });
@@ -21,7 +32,7 @@ app.get('/api/authors/:name', (req, res) => {
         res.send('Author name must be typed!')
     }
    
-    getData('selectOne', {name: authName}).then(data =>{
+    getData({name: authName}).then(data =>{
         res.header("Content-Type",'application/json');
         if (data.length == 0){
             res.status(404).send('no author found!')
@@ -37,7 +48,7 @@ app.get('/api/quotes/:quote', (req, res) => {
         res.send('At least a piece of a quote must be typed!')
     }
    
-    getData('selectOne', {quote: new RegExp(quoteName, 'i')}).then(data =>{
+    getData({quote: new RegExp(quoteName, 'i')}).then(data =>{
         res.header("Content-Type",'application/json');
         if (data.length == 0){
             res.status(404).send('no author found!')
